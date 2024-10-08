@@ -51,8 +51,20 @@ private:
 	// ゲーム終了フラグ trueで終了する
 	bool		m_endFlag = false;
 
-	// 何かを打ち込んだ後、ctrl+sを押して保存
-	int test;
+	// カメラ
+	std::shared_ptr<KdCamera>					m_spCamera	= nullptr;
+
+	//// ゲームオブジェクト(ハム太郎)の宣言
+	//std::shared_ptr<KdGameObject>				m_Hamu		= nullptr;
+
+	//// ゲームオブジェクト(地形)の宣言
+	//std::shared_ptr<KdGameObject>				m_Terrain	= nullptr;
+
+	// ゲームオブジェクトリスト
+	std::vector<std::shared_ptr<KdGameObject>>m_GameObjList;
+	// KdGameObject型のスマートポインタ型の可変長配列m_GameObjList
+	// ポリモーフィズム：操作したいクラスを一律でKdGameObjectクラスとして扱うこと
+	// 派生先クラスでは、派生元クラスの関数をoverrideしているため、各自で好きな処理を行うことができる
 
 //=====================================================
 // シングルトンパターン

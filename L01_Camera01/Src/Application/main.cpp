@@ -1,4 +1,6 @@
 ﻿#include "main.h"
+#include"HamuHamu.h"
+#include"Terrain.h"
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 // エントリーポイント
@@ -64,6 +66,51 @@ void Application::PreUpdate()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void Application::Update()
 {
+	// カメラ行列の更新
+	{
+		// どれくらいの大きさか
+		Math::Matrix _mScale =
+			Math::Matrix::CreateScale(1);
+
+		// どれだけ傾けているか
+		Math::Matrix _mRotationX =
+			Math::Matrix::CreateRotationX(
+				DirectX::XMConvertToRadians(45));
+
+		static float _mRotY = 0;
+
+		Math::Matrix _mRotationY =
+			Math::Matrix::CreateRotationY(
+				DirectX::XMConvertToRadians(_mRotY));
+
+		//_mRotY += 0.5f;
+
+		// どこに配置されているか
+		Math::Matrix _mTrans =
+			Math::Matrix::CreateTranslation(0, 6.0f, -5.0f);
+			//Math::Matrix::CreateTranslation(m_mHamuWorld._41, m_mHamuWorld._42 + 6.0f , m_mHamuWorld._43 - 5.0f);
+
+		// カメラの「ワールド行列」を作成し、適応させる
+		Math::Matrix _worldMat = (_mScale * _mRotationX * _mTrans * _mRotationY);
+		//Math::Matrix _worldMat = _mTrans * _mRotation;
+		
+		// 座標の公式
+		// W=S*R*T	拡縮*回転*移動
+
+		m_spCamera->SetCameraMatrix(_worldMat);
+	}
+
+	// ハム太郎の更新
+	{
+		// ゲームオブジェクト(ハム太郎)の更新
+		/*m_Hamu->Update();*/
+
+		// 全ゲームオブジェクトを更新(範囲ベースfor文)
+		for (std::shared_ptr<KdGameObject>obj : m_GameObjList)
+		{
+			obj->Update();
+		}
+	}
 }
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
@@ -100,6 +147,7 @@ void Application::KdPostDraw()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void Application::PreDraw()
 {
+	m_spCamera->SetToShader();
 }
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
@@ -118,7 +166,18 @@ void Application::Draw()
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
 	// 陰影のあるオブジェクト(不透明な物体や2Dキャラ)はBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_StandardShader.BeginLit();
-	{
+	{	
+		//// ゲームオブジェクト(ハム太郎)描画
+		//m_Hamu->DrawLit();
+
+		//// ゲームオブジェクト(地形)描画
+		//m_Terrain->DrawLit();
+
+		// 全ゲームオブジェクトを描画
+		for (std::shared_ptr<KdGameObject>obj : m_GameObjList)
+		{
+			obj->DrawLit();
+		}
 	}
 	KdShaderManager::Instance().m_StandardShader.EndLit();
 
@@ -178,9 +237,9 @@ bool Application::Init(int w, int h)
 	// フルスクリーン確認
 	//===================================================================
 	bool bFullScreen = false;
-	if (MessageBoxA(m_window.GetWndHandle(), "フルスクリーンにしますか？", "確認", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES) {
+	/*if (MessageBoxA(m_window.GetWndHandle(), "フルスクリーンにしますか？", "確認", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES) {
 		bFullScreen = true;
-	}
+	}*/
 
 	//===================================================================
 	// Direct3D初期化
@@ -221,7 +280,35 @@ bool Application::Init(int w, int h)
 	//===================================================================
 	KdAudioManager::Instance().Init();
 
-	test = 5;
+	//===================================================================
+	// カメラ初期化
+	//===================================================================
+	m_spCamera	= std::make_shared<KdCamera>();
+
+	//===================================================================
+	// ハムスター初期化
+	//===================================================================
+	std::shared_ptr<HamuHamu>_Hamu = std::make_shared<HamuHamu>();
+	//m_Hamu = std::make_shared<HamuHamu>();			// 宣言では親クラスの型で行い、インスタンス化は作りたい子クラスの型で作成する(ポリモーフィズム)
+	_Hamu->Init();
+
+	// ★重要★
+	m_GameObjList.push_back(_Hamu);
+	// m_GameObjListのリスト内の要素の最後にハム太郎の実体を追加する
+
+	//===================================================================
+	// 地形初期化
+	//===================================================================
+	std::shared_ptr<Terrain> _Terrain = std::make_shared<Terrain>();
+	//m_Terrain = std::make_shared<Terrain>();
+	_Terrain->Init();
+
+	// ★重要★
+	m_GameObjList.push_back(_Terrain);
+	// m_GameObjListのリスト内の要素の最後に地形データの実体を追加する
+
+	// HamuHamuクラスもTerrainクラスも、基底クラスがKdGameObject型である
+	// ->KdGameObjectに派生クラスたちを入れられる
 
 	return true;
 }
