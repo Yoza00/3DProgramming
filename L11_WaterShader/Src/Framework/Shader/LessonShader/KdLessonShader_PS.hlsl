@@ -50,10 +50,12 @@ float4 main(VSOutput In) : SV_Target0
 	vCam = normalize(vCam);
 
 	// 法線マップから法線ベクトル取得
-	float3 wN = g_normalTex.Sample(g_ss, In.UV).rgb;
+	float3 wN1 = g_normalTex.Sample(g_ss, In.UV).rgb;
+	float3 wN2 = g_normalTex.Sample(g_ss, In.UV2).rgb;
 
 	// UV座標（0～1）から 射影座標（-1～1）へ変換
-	wN = wN * 2.0 - 1.0;
+	wN1 = wN1 * 2.0 - 1.0;
+	wN2 = wN2 * 2.0 - 1.0;
 
 	{
 		// 3種の法線から法線行列を作成
@@ -65,11 +67,12 @@ float4 main(VSOutput In) : SV_Target0
 		};
 
 		// 法線ベクトルをこのピクセル空間へ変換
-		wN = mul(wN, mTBN);
+		wN1 = mul(wN1, mTBN);
+		wN2 = mul(wN2, mTBN);
 	}
 
 	// 法線正規化
-	wN = normalize(wN);
+	float3 wN = normalize(wN1 + wN2);
 
 	float4 mr = g_metalRoughTex.Sample(g_ss, In.UV);
 	// 金属性

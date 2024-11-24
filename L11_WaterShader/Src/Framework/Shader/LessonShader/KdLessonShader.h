@@ -59,6 +59,13 @@ public:
 		}
 	}
 
+	// UVオフセット設定
+	void SetUVOffset(const Math::Vector2& offset)
+	{
+		m_cb0_Obj.Work().UVOffset = offset;
+		m_dirtyCBObj = true;
+	}
+
 	//================================================
 	// 各定数バッファの取得
 	//================================================

@@ -214,7 +214,11 @@ void KdLessonShader::DrawModel(KdModelWork& rModel, const Math::Matrix& mWorld,
 		if (GetEnableOutLineDraw())
 		{
 			// 裏面をカリング(非表示)にするラスタライザステートをセットする
-			KdShaderManager::Instance().ChangeRasterizerState(KdRasterizerState::CullBack);
+			KdShaderManager::Instance().UndoRasterizerState();
+			// ChangeRasterizerState()の場合、使用すればするほどルールが蓄積されていく。
+			// ルールはメモリに蓄積されていくため、いずれメモリ領域がなくなってしまう。
+			// そのため、ルールを変更したら変更前のデータは削除する必要がある。
+			// 削除すればメモリはその分減少する。
 		}
 	}
 
